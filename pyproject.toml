@@ -1,18 +1,23 @@
 [project]
 name = "mnist"
-version = "0.1.0"
+version = "0.2.0"
 description = "Default template for PDM package"
 authors = [
     {name = "mangG907", email = "mang.gee@gmail.com"},
 ]
+
 dependencies = [
+    "fastapi>=0.114.1",
+    "uvicorn[standard]>=0.30.6",
     "python-multipart>=0.0.9",
-    "pymysql>=1.1.1",
+    "PyMySQL>=1.1.1",
+    "pytz>=2024.2",
 ]
+
 requires-python = "==3.11.*"
 readme = "README.md"
 license = {text = "MIT"}
 
 
 [tool.pdm]
-distribution = false
+distribution = true

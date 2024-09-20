@@ -1,6 +1,10 @@
 from typing import Annotated
 from fastapi import FastAPI, File, UploadFile
 import os
+import uuid
+import pymysql.cursors
+from datetime import datetime
+from pytz import timezone
 
 app = FastAPI()
 
@@ -15,14 +19,17 @@ async def create_upload_file(file: UploadFile):
     img = await file.read()
     file_name = file.filename
     file_ext = file.content_type.split('/')[-1]
-
+    
+    # 현재 이곳에 들어오는 시간
+    ts = datetime.now(timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
+    
     # 디렉토리가 없으면 오류, 코드에서 확인 및 만들기 추가
     upload_dir = "/home/manggee/code/mnist/img"
     if not os.path.exists(upload_dir):
         os.makedirs(upload_dir)
 
     file_full_path = os.path.join(upload_dir,
-            f'{uuid.uuid4()}.{file_exec}')
+            f'{uuid.uuid4()}.{file_ext}')
 
     with open(file_full_path, "wb") as f:
         f.write(img)
@@ -34,12 +41,52 @@ async def create_upload_file(file: UploadFile):
     # 컬럼 정보 : 예측모델, 예측결과, 예측시간(추후 업데이트)
     import pymysql.cursors
     sql = "INSERT INTO image_processing(file_name, file_path, request_time, request_user) VALUES(%s, %s, %s, %s)"
-    conn = pymysql.connect(host='127.0.0.1', port = 53306,
+    connection = pymysql.connect(host='localhost', port = 43306,
                             user = 'mnist', password = '1234',
                             database = 'mnistdb',
                             cursorclass=pymysql.cursors.DictCursor)
-    
+    with connection:
+        with connection.cursor() as cursor:
+            # sql = "SELECT `id`, `password` FROM `users` WHERE `email`=%s"
+            # cursor.execute(sql, ('webmaster@python.org',))
+            cursor.execute(sql,(file_name, file_full_path, ts, "n24"))
+        connection.commit()
+
     return {"filename": file.filename,
             "content_type": file.content_type,
             "file_full_path": file_full_path
             }
+
+@app.get("/all/")
+def all():
+    from mnist.db import select
+    sql = "SELECT * FROM image_processing"
+    result = select(query=sql, size=-1)
+    return result
+    # DB 연결 select all
+    # 결과값 리턴
+
+@app.get("/one/")
+def one():
+    from mnist.db import select
+    sql = """SELECT * FROM image_processing
+    WHERE prediction_time IS NULL ORDER BY num LIMIT 1"""
+    result = select(query=sql, size=1)
+    return result[0]
+    # DB 연결 select 값 중 하나만 리턴
+    # 결과값 리턴
+
+@app.get("/many/")
+def many(size: int = -1):
+    from mnist.db import get_connection
+
+    sql = "SELECT * FROM image_processing WHERE prediction_time IS NULL ORDER BY num"
+    connection = get_connection()
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchmany(size)
+
+    return result
+
+
