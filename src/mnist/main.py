@@ -5,6 +5,7 @@ import uuid
 import pymysql.cursors
 from datetime import datetime
 from pytz import timezone
+from mnist.db import get_connection
 
 app = FastAPI()
 
@@ -41,10 +42,8 @@ async def create_upload_file(file: UploadFile):
     # 컬럼 정보 : 예측모델, 예측결과, 예측시간(추후 업데이트)
     import pymysql.cursors
     sql = "INSERT INTO image_processing(file_name, file_path, request_time, request_user) VALUES(%s, %s, %s, %s)"
-    connection = pymysql.connect(host='localhost', port = 43306,
-                            user = 'mnist', password = '1234',
-                            database = 'mnistdb',
-                            cursorclass=pymysql.cursors.DictCursor)
+    connection = get_connection() # db랑 연결 (db.py)
+
     with connection:
         with connection.cursor() as cursor:
             # sql = "SELECT `id`, `password` FROM `users` WHERE `email`=%s"
@@ -78,7 +77,6 @@ def one():
 
 @app.get("/many/")
 def many(size: int = -1):
-    from mnist.db import get_connection
 
     sql = "SELECT * FROM image_processing WHERE prediction_time IS NULL ORDER BY num"
     connection = get_connection()
