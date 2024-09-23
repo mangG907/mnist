@@ -1,28 +1,28 @@
 from datetime import datetime
 from pytz import timezone
-from mnist.db import get_conn, select, dml
+from mnist.db import get_connection, select, dml
 
 import random
 import requests
 import os
 
 def run():
-  """image_processing 테이블을 읽어서 가장 오래된 요청 하나씩을 처리"""
-  
-  # STEP 1
-  # image_processing 테이블의 prediction_result IS NULL 인 ROW 1 개 조회 - num 갖여오기
+    """image_processing 테이블을 읽어서 가장 오래된 요청 하나씩을 처리"""
+
+    # STEP 1
+    # image_processing 테이블의 prediction_result IS NULL 인 ROW 1 개 조회 - num 갖여오기
     connection = get_connection()
     with connection:
-        with connection.cursor() as cursor:
+      with connection.cursor() as cursor:
             sql = "SELECT num FROM image_processing WHERE prediction_result IS NULL"
             cursor.execute(sql)
             result = cursor.fetchone() # 형식 : {'num' : ?}
-    return result
-  
+     # return result
 
-  # STEP 2
-  # RANDOM 으로 0 ~ 9 중 하나 값을 prediction_result 컬럼에 업데이트
-  # 동시에 prediction_model, prediction_time 도 업데이트
+
+    # STEP 2
+    # RANDOM 으로 0 ~ 9 중 하나 값을 prediction_result 컬럼에 업데이트
+    # 동시에 prediction_model, prediction_time 도 업데이트
     ts = datetime.now(timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
     if result == None:
         ind = None
@@ -35,10 +35,10 @@ def run():
                 sql = f"UPDATE image_processing SET prediction_result={pred}, prediction_model='randint', prediction_time='{ts}' WHERE num={ind}"
                 cursor.execute(sql)
             connection.commit()
-    
-  # STEP 3
-  # LINE 으로 처리 결과 전송
-  headers = {
+
+    # STEP 3
+    # LINE 으로 처리 결과 전송
+    headers = {
         'Authorization': 'Bearer ' + os.getenv('LINE_HOME', '5y3weqDC3UsYk2Afu9zXGb5KFaLkOh9vaWTeJwwMpBu'),
     }
 
