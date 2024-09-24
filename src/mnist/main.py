@@ -69,8 +69,7 @@ def all():
 @app.get("/one/")
 def one():
     from mnist.db import select
-    sql = """SELECT * FROM image_processing
-    WHERE prediction_time IS NULL ORDER BY num LIMIT 1"""
+    sql = """SELECT * FROM image_processing ORDER BY num LIMIT 1"""
     result = select(query=sql, size=1)
     return result[0]
     # DB 연결 select 값 중 하나만 리턴
@@ -79,7 +78,7 @@ def one():
 @app.get("/many/")
 def many(size: int = -1):
 
-    sql = "SELECT * FROM image_processing WHERE prediction_time IS NULL ORDER BY num"
+    sql = "SELECT * FROM image_processing ORDER BY num"
     connection = get_connection()
     with connection:
         with connection.cursor() as cursor:

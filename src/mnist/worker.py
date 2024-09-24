@@ -5,6 +5,7 @@ from mnist.db import get_connection, select, dml
 import random
 import requests
 import os
+from mnist.model.cnn_model import predict_digit
 
 def run():
     """image_processing 테이블을 읽어서 가장 오래된 요청 하나씩을 처리"""
@@ -14,7 +15,7 @@ def run():
     connection = get_connection()
     with connection:
       with connection.cursor() as cursor:
-            sql = "SELECT num FROM image_processing WHERE prediction_result IS NULL"
+            sql = "SELECT num, file_path FROM image_processing WHERE prediction_result IS NULL"
             cursor.execute(sql)
             result = cursor.fetchone() # 형식 : {'num' : ?}
      # return result
@@ -28,7 +29,7 @@ def run():
         ind = None
     else:
         ind = result['num']
-        pred = random.randint(0,9)
+        pred = predict_digit(result['file_path'])
         connection = get_connection()
         with connection:
             with connection.cursor() as cursor:
