@@ -1,4 +1,5 @@
 import pymysql.cursors
+import os
 
 def get_connection():
   connection = pymysql.connect(host=os.getenv("DB_IP", "localhost"),
