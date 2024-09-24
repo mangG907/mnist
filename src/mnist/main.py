@@ -26,7 +26,7 @@ async def create_upload_file(file: UploadFile):
     ts = datetime.now(timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
     
     # 디렉토리가 없으면 오류, 코드에서 확인 및 만들기 추가
-    upload_dir = os.getenv("UPLOAD_DIR", "./photo")
+    upload_dir = os.getenv("UPLOAD_DIR", "/home/manggee/code/mnist/photo")
     if not os.path.exists(upload_dir):
         os.makedirs(upload_dir)
 
