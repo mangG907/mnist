@@ -19,6 +19,7 @@ async def create_upload_file(file: UploadFile):
     # 파일 저장
     img = await file.read()
     file_name = file.filename
+    file_label = int(file_name.split('.')[0].split('_')[-1])
     file_ext = file.content_type.split('/')[-1]
     
   
@@ -42,17 +43,18 @@ async def create_upload_file(file: UploadFile):
     # 컬럼 정보 : 파일이름, 파일경로, 요청시간(초기 인서트), 요청사용자(n00)
     # 컬럼 정보 : 예측모델, 예측결과, 예측시간(추후 업데이트)
     import pymysql.cursors
-    sql = "INSERT INTO image_processing(file_name, file_path, request_time, request_user) VALUES(%s, %s, %s, %s)"
+    sql = "INSERT INTO image_processing(file_name, label, file_path, request_time, request_user) VALUES(%s, %s, %s, %s, %s)"
     connection = get_connection() # db랑 연결 (db.py)
 
     with connection:
         with connection.cursor() as cursor:
             # sql = "SELECT `id`, `password` FROM `users` WHERE `email`=%s"
             # cursor.execute(sql, ('webmaster@python.org',))
-            cursor.execute(sql,(file_name, file_full_path, ts, "n24"))
+            cursor.execute(sql,(file_name, file_label, file_full_path, ts, "n24"))
         connection.commit()
 
     return {"filename": file.filename,
+            "filelabel" : file_label,
             "content_type": file.content_type,
             "file_full_path": file_full_path
             }
